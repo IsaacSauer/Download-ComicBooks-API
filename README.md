@@ -1,152 +1,81 @@
-# Unoffical Comic books api
+# Unofficial comic book lookup (stripinfo.be)
 
-The following api returns comic book information from various publishers
-including marvel, dc, archie and many more publications.
+Look up a comic album on [stripinfo.be](https://stripinfo.be) by ISBN and get
+its most recent edition: title, series, number, year, cover image and the
+full details table.
 
-Don't forget to ⭐ the
-[repository](https://github.com/yashkathe/Download-ComicBooks-API)!
+Written in TypeScript; ships its own type definitions and works from
+JavaScript too.
+
+## How it works
+
+1. Searches `https://stripinfo.be/zoek/zoek?zoekstring=<ISBN>`.
+2. Opens the first album page (`https://stripinfo.be/reeks/strip/...`) in the results.
+3. Reads every edition listed on that album page, including the ones the page
+   loads separately.
+4. Returns the edition with the highest year ("Jaar"), with its cover image.
 
 ## Example
 
-Implementing the library for API calls
+```ts
+import { getComicByIsbn } from "comicbooks-api";
 
-### Example 1
-
-```js
-const comicsApi = require("comicbooks-api");
-
-try {
-	const getApi = async () => {
-		const comics = await comicsApi.getLatestComics(1);
-		console.log(comics);
-	};
-	getApi();
-} catch (err) {
-	console.log(err);
-}
+const comic = await getComicByIsbn("9789462102828");
 ```
 
-The above function takes one argument:
-
-1. Page Number
-
-### Example 2
-
 ```js
-const comicsApi = require("comicbooks-api");
+const { getComicByIsbn } = require("comicbooks-api");
 
-try {
-	const getApi = async () => {
-		const comics = await wait comicsApi.getComicsThroughSearch("batman", 1);
-		console.log(comics);
-	};
-	getApi();
-} catch (err) {
-	console.log(err);
-}
+getComicByIsbn("9789462102828").then(console.log);
 ```
 
-The above function takes two arguments:
-
-1. Search Query
-2. Page Number
-
-The function returns an array of objects containing comic book information
-
-### example object:
+Result:
 
 ```js
-  {
-    title: "Batman – Beyond the White Knight #6 (2022)",
-    coverPage: "https://i0.wp.com/getcomics.info/share/uploads/2022/10/Batman-Beyond-the-White-Knight-6-2022.jpg?fit=400%2C615&ssl=1",
-    description: "After years of rivalry, it’s the showdown you’ve been waiting for…Jason Todd versus Dick Grayson! Who’s the best Robin? Find out this issue! Plus, with the help of an unexpected new ally, Bruce Wayne aims to take Derek Powers down for good. But will the malevolent millionaire’s newfound powers prove to be too much for the former Batman?",
-    information: {
-      "ImageFormat": "JPG",
-      "Size": "64 MB",
-      "Year": "2022",
-    }
-    downloadLinks: {
-      DOWNLOADNOW: "link here",
-      MEDIAFIRE: "link here",
-      READONLINE: "link here",
-      UFILE: "link here",
-      ZIPPYSHARE: "link here",
-    }
+{
+  title: "De grote knoeiboel",
+  series: "Jommeke",
+  issueNumber: "99",
+  year: 2015,
+  image: "https://stripinfo.be/image.php?i=402064&s=335856",
+  url: "https://stripinfo.be/reeks/strip/335856_Jommeke_99_De_grote_knoeiboel",
+  details: {
+    Scenario: "Jef Nys",
+    Tekeningen: "Jef Nys",
+    "Uitgever(s)": "Ballon",
+    Jaar: "2015",
+    "Pagina's": "48",
+    Barcode: "9789462102828",
+    Kaft: "Softcover",
+    Taal: "Nederlands"
   }
+}
 ```
 
-## List of Publishers and their respective functions
+`details` uses the site's own (Dutch) labels, so it includes whatever rows
+that edition has (for example `ISBN` on older editions).
 
-- Marvel Comics  
-  getMarvelComics( pageNumber )
+## Functions
 
-- DC Comics  
-  getDCComics( pageNumber )
+- `getComicByIsbn(isbn)` returns the most recent edition, or `undefined`
+  if the ISBN isn't found. Dashes and spaces in the ISBN are ignored.
+- `getAllEditionsByIsbn(isbn)` returns every edition of that album
+  (empty array if not found).
 
-- DC Vertigo  
-  getDCComicsVertigo( pageNumber )
+Requests that get HTTP 429 (rate limited) are retried a few times, and
+edition pages are fetched 3 at a time.
 
-- DC Wildstorm  
-  getDCComicsWildstorm( pageNumber )
+## Development
 
-- Europe Comics  
-  getEuropeComics( pageNumber )
+Source lives in `src/` and compiles to `dist/`.
 
-- Image Comics  
-  getImageComics( pageNumber )
-
-- 2000AD  
-  ad2000comics( pageNumber )
-
-- After Shock  
-  getAftershockComics( pageNumber )
-
-- Antartic Press  
-  getAntarticPressComics( pageNumber )
-
-- Archie  
-  getArchieComics( pageNumber )
-
-- Avatar Press  
-  getAvatarPressComics( pageNumber )
-
-- Aspen  
-  getAspenComics( pageNumber )
-
-- Black Mask  
-  getBlackMaskComics( pageNumber )
-
-- Boom Studios  
-  getBoomStudiosComics( pageNumber )
-
-- Dark Horse  
-  getDarkHorseComic( pageNumber )
-
-- Dynamite  
-  getDynamiteComics( pageNumber )
-
-- IDW  
-  getIDWComics( pageNumber )
-
-- Lion Forge  
-  getLionForgeComics( pageNumber )
-
-- Oni Press  
-  getOniPressComics( pageNumber )
-
-- Valiant  
-  getValiantComics( pageNumber )
-
-- ZeneScope  
-  getZenescopeComics( pageNumber )
-
-## Other Functions
-
-- Get recently published comics from all publishers  
-  getLatestComics( pageNumber )
-
-- Search comics through search query  
-  getComicsThroughSearch( searchQuery , pageNumber )
+```bash
+npm install
+npm run typecheck   # type-check src and tests
+npm run build       # compile to dist/
+npm test            # offline tests (mocked HTTP)
+npm run test:live   # checks against the real stripinfo.be
+```
 
 ## Report Problems
 

@@ -1,2 +1,4 @@
 node_modules
 junk
+dist
+coverage
